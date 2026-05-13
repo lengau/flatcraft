@@ -12,7 +12,7 @@ description: |
   .flatpak file.
 
 grade: devel
-confinement: devmode
+confinement: classic
 
 platforms:
   amd64:
