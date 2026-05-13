@@ -1,0 +1,42 @@
+name: flatcraft
+base: core24
+version: git
+summary: A craft tool for creating Flatpak packages
+description: |
+  Flatcraft is a craft tool for creating Flatpak packages, following the
+  patterns established by snapcraft, rockcraft, and other *craft tools
+  from Canonical.
+
+  It uses a declarative flatcraft.yaml file to define your application's
+  Flatpak manifest, then builds and bundles it into a distributable
+  .flatpak file.
+
+grade: devel
+confinement: devmode
+
+platforms:
+  amd64:
+  arm64:
+
+apps:
+  flatcraft:
+    command: bin/flatcraft
+    environment:
+      PATH: $SNAP/bin:$PATH
+      PYTHONPATH: $SNAP/lib/python3.12/site-packages:$PYTHONPATH
+
+parts:
+  flatcraft:
+    plugin: python
+    source: .
+    source-type: git
+    python-packages:
+      - .
+    build-environment:
+      - SETUPTOOLS_SCM_PRETEND_VERSION: "0.1.0"
+    build-packages:
+      - python3-dev
+    stage-packages:
+      - flatpak
+      - flatpak-builder
+      - python3-venv

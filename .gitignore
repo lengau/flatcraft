@@ -105,3 +105,4 @@ __pypackages__/
 .flatpak-builder/
 flatpak-build/
 repo/
+*.snap
