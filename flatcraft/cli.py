@@ -19,8 +19,6 @@ from __future__ import annotations
 
 import sys
 
-from craft_application import Application
-
 from flatcraft.application import APP_METADATA, Flatcraft
 
 

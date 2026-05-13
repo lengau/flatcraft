@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import craft_application
+from typing_extensions import override
 
 from flatcraft import models
 
@@ -30,8 +31,6 @@ class Flatcraft(craft_application.Application):
         """Return application-specific plugins."""
         return {}
 
-
-from typing_extensions import override  # noqa: E402
 
 APP_METADATA = craft_application.AppMetadata(
     name="flatcraft",
