@@ -1,0 +1,29 @@
+# Build artifacts
+dist/
+build/
+*.egg-info/
+.venv/
+venv/
+__pycache__/
+
+# Project files
+uv.lock
+.coverage*
+results/
+.mypy_cache/
+.ruff_cache/
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+*.pyc
+*.pyo
