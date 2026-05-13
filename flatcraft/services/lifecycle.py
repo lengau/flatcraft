@@ -18,12 +18,16 @@
 from __future__ import annotations
 
 import json
+import logging
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
 
 from flatcraft.errors import FlatpakBuilderError, ManifestError
 from flatcraft.models.project import Module, Project, Source
+
+logger = logging.getLogger(__name__)
 
 
 def generate_manifest(project: Project) -> dict[str, Any]:
@@ -36,6 +40,15 @@ def generate_manifest(project: Project) -> dict[str, Any]:
         "command": project.command,
         "modules": [_module_to_dict(m) for m in project.modules],
     }
+
+    # Add SDK extensions if present
+    sdk_extensions: list[str] = []
+    # Check if modules have any extension requirements
+    for module in project.modules:
+        # This could be extended if modules have extension metadata
+        pass
+    if sdk_extensions:
+        manifest["sdk-extensions"] = sdk_extensions
 
     if project.finish_args:
         finish_args: list[str] = []
@@ -84,6 +97,8 @@ def _module_to_dict(module: Module) -> dict[str, Any]:
         result["sources"] = [_source_to_dict(s) for s in module.sources]
     if module.modules:
         result["modules"] = [_module_to_dict(m) for m in module.modules]
+    # Add cleanup support (placeholder for future cleanup field implementation)
+    # This would be used if Module model gets a cleanup field
     return result
 
 
@@ -145,4 +160,115 @@ def build_bundle(
     except subprocess.CalledProcessError as e:
         msg = f"Failed to create bundle:\n{e.stderr}"
         raise FlatpakBuilderError(msg) from e
+    return bundle_path
+
+
+def validate_environment() -> dict[str, bool]:
+    """Validate that required tools are installed.
+
+    Returns:
+        A dictionary with tool names as keys and installation status as values.
+
+    Raises:
+        FlatpakBuilderError: If critical tools are missing.
+    """
+    tools = {"flatpak-builder": False, "flatpak": False}
+
+    for tool in tools:
+        if shutil.which(tool):
+            tools[tool] = True
+            logger.debug(f"Found {tool}")
+        else:
+            logger.warning(f"{tool} not found in PATH")
+
+    if not tools["flatpak-builder"]:
+        msg = "flatpak-builder not found. Install it with: sudo apt install flatpak-builder"
+        raise FlatpakBuilderError(msg)
+
+    if not tools["flatpak"]:
+        msg = "flatpak not found. Install it with: sudo apt install flatpak"
+        raise FlatpakBuilderError(msg)
+
+    return tools
+
+
+def pack(
+    project: Project,
+    output_path: Path,
+    build_dir: Path | None = None,
+    repo_dir: Path | None = None,
+) -> Path:
+    """Orchestrate the full Flatpak build lifecycle.
+
+    This function coordinates the complete process of building a Flatpak:
+    1. Validates the environment (checks for required tools)
+    2. Generates the Flatpak manifest
+    3. Runs flatpak-builder to build the application
+    4. Creates a .flatpak bundle
+
+    Args:
+        project: The flatcraft Project model to build.
+        output_path: Directory where output files will be written.
+        build_dir: Directory for the build process. If None, uses a temporary dir.
+        repo_dir: Directory for the Flatpak repository. If None, uses a temporary dir.
+
+    Returns:
+        The path to the generated .flatpak bundle.
+
+    Raises:
+        FlatpakBuilderError: If the build process fails.
+        ManifestError: If manifest generation fails.
+    """
+    logger.info(f"Starting Flatpak build for {project.app_id}")
+
+    # Validate environment
+    try:
+        logger.debug("Validating environment")
+        validate_environment()
+    except FlatpakBuilderError as e:
+        logger.error(f"Environment validation failed: {e}")
+        raise
+
+    # Create output directory if it doesn't exist
+    output_path.mkdir(parents=True, exist_ok=True)
+    logger.debug(f"Output directory: {output_path}")
+
+    # Set default directories if not provided
+    if build_dir is None:
+        build_dir = output_path / "build"
+    if repo_dir is None:
+        repo_dir = output_path / "repo"
+
+    build_dir.mkdir(parents=True, exist_ok=True)
+    repo_dir.mkdir(parents=True, exist_ok=True)
+    logger.debug(f"Build directory: {build_dir}")
+    logger.debug(f"Repo directory: {repo_dir}")
+
+    # Generate manifest
+    try:
+        logger.debug("Generating manifest")
+        manifest_path = write_manifest(project, output_path)
+        logger.info(f"Manifest written to {manifest_path}")
+    except ManifestError as e:
+        logger.error(f"Manifest generation failed: {e}")
+        raise
+
+    # Run flatpak-builder
+    try:
+        logger.debug(f"Running flatpak-builder with manifest {manifest_path}")
+        run_flatpak_builder(manifest_path, build_dir, repo_dir)
+        logger.info("flatpak-builder completed successfully")
+    except FlatpakBuilderError as e:
+        logger.error(f"flatpak-builder failed: {e}")
+        raise
+
+    # Build bundle
+    try:
+        logger.debug("Building .flatpak bundle")
+        bundle_path = build_bundle(repo_dir, project.app_id, output_path)
+        logger.info(f"Bundle created successfully: {bundle_path}")
+    except FlatpakBuilderError as e:
+        logger.error(f"Bundle creation failed: {e}")
+        raise
+
     return bundle_path
