@@ -43,6 +43,11 @@ dev = [
     "types-setuptools",
     "types-PyYAML",
 ]
+docs = [
+    "sphinx>=7.0",
+    "furo>=2024.0",
+    "sphinx-autodoc-typehints>=2.0",
+]
 
 [build-system]
 requires = ["setuptools>=69.0", "setuptools_scm[toml]>=7.1"]

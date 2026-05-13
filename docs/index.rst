@@ -1,11 +1,13 @@
 Flatcraft Documentation
 =======================
 
-Welcome to the Flatcraft documentation! This is a placeholder for future ReadTheDocs integration.
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   getting-started
+   flatcraft-yaml
+   api/index
 
 Introduction
 ============
@@ -14,24 +16,35 @@ Flatcraft is a craft tool for creating `Flatpak <https://flatpak.org/>`_ package
 patterns established by `snapcraft <https://github.com/canonical/snapcraft>`_,
 `rockcraft <https://github.com/canonical/rockcraft>`_, and other \*craft tools.
 
-Getting Started
-===============
+It uses a declarative ``flatcraft.yaml`` file to define your application's Flatpak manifest,
+then builds and bundles it into a distributable ``.flatpak`` file.
 
-For installation and basic usage, see the `README <../README.md>`_.
+Quick Start
+===========
 
-For development setup and contribution guidelines, see `CONTRIBUTING <../CONTRIBUTING.md>`_.
+Install flatcraft::
 
-API Reference
-=============
+   pip install flatcraft
 
-This section will contain API documentation for Flatcraft modules.
+Create a ``flatcraft.yaml`` in your project::
 
-.. todo::
+   name: my-app
+   app_id: com.example.MyApp
+   runtime: org.freedesktop.Platform
+   runtime_version: "24.08"
+   sdk: org.freedesktop.Sdk
+   command: my-app
+   modules:
+     - name: my-app
+       buildsystem: meson
+       sources:
+         - type: git
+           url: https://github.com/example/my-app.git
+           tag: v1.0.0
 
-   - Complete API documentation
-   - Add module guides
-   - Add examples and tutorials
-   - Add troubleshooting guide
+Build your flatpak::
+
+   flatcraft pack
 
 Indices and Tables
 ==================
