@@ -1,0 +1,161 @@
+[project]
+name = "flatcraft"
+description = "A craft tool for creating Flatpak packages"
+dynamic = ["version"]
+dependencies = [
+    "craft-application>=4.0",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Topic :: Software Development :: Build Tools",
+]
+license = "GPL-3.0"
+requires-python = ">=3.10"
+readme = { file = "README.md", content-type = "text/markdown" }
+
+[project.scripts]
+flatcraft = "flatcraft.cli:main"
+
+[dependency-groups]
+lint = []
+types = [
+    "mypy[reports]~=1.20.0",
+    "types-Pygments",
+    "types-colorama",
+    "types-setuptools",
+    "types-PyYAML",
+]
+dev = [
+    "build>=0.7.0",
+    "coverage[toml]~=7.4",
+    "pytest~=9.0",
+    "pytest-cov~=7.0",
+    "pytest-mock~=3.12",
+    "mypy[reports]~=1.20.0",
+    "types-Pygments",
+    "types-colorama",
+    "types-setuptools",
+    "types-PyYAML",
+]
+
+[build-system]
+requires = ["setuptools>=69.0", "setuptools_scm[toml]>=7.1"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "flatcraft/_version.py"
+version_scheme = "post-release"
+git_describe_command = [
+    "git",
+    "describe",
+    "--dirty",
+    "--long",
+    "--match",
+    "[0-9]*.[0-9]*.[0-9]*",
+    "--exclude",
+    "*[^0-9.]*",
+]
+
+[tool.setuptools.packages.find]
+include = ["flatcraft*"]
+namespaces = false
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = "tests"
+xfail_strict = true
+markers = ["slow: slow tests"]
+
+[tool.coverage.run]
+branch = true
+omit = ["tests/**"]
+
+[tool.coverage.report]
+skip_empty = true
+exclude_also = ["if (typing\\.)?TYPE_CHECKING:"]
+
+[tool.pyright]
+strict = ["flatcraft"]
+pythonVersion = "3.10"
+pythonPlatform = "Linux"
+exclude = [
+    "**/.*",
+    "**/__pycache__",
+    "**/_version.py",
+]
+
+[tool.mypy]
+python_version = "3.10"
+exclude = ["build", "results"]
+warn_unused_configs = true
+warn_redundant_casts = true
+strict_equality = true
+extra_checks = true
+warn_return_any = true
+disallow_subclassing_any = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+
+[[tool.mypy.overrides]]
+module = ["flatcraft.*"]
+disallow_untyped_defs = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+strict = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+src = ["flatcraft", "tests"]
+extend-exclude = ["docs"]
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+quote-style = "double"
+
+[tool.ruff.lint]
+select = [
+    "F", "E", "W", "I", "N", "D", "UP", "YTT", "ANN", "ASYNC",
+    "S101", "S102", "S103", "S108", "S104", "S105", "S106", "S107",
+    "S110", "S113", "S3", "S5", "S602", "S701",
+    "BLE", "FBT", "B0", "A", "COM", "C4", "T10", "ISC", "ICN", "INP",
+    "PIE790", "PIE794", "PIE796", "PIE804", "PIE807", "PIE810",
+    "PYI", "PT", "Q", "RSE", "RET", "SLF", "SIM", "TID",
+    "TC001", "TC002", "TC003", "TC004", "TC005",
+    "ARG", "PTH", "FIX", "ERA", "PGH", "PL", "TRY", "FLY", "PERF",
+    "RUF001", "RUF002", "RUF003", "RUF005", "RUF008", "B035",
+    "RUF013", "RUF100", "RUF200",
+]
+ignore = [
+    "E501", "D105", "D107", "D203", "D213", "D215", "A003",
+    "SIM117", "PLW1641", "COM812", "ISC001", "TRY003",
+]
+
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true
+
+[tool.ruff.lint.pydocstyle]
+ignore-decorators = [
+    "typing.overload",
+    "overrides.override",
+    "overrides.overrides",
+    "typing.override",
+    "typing_extensions.override",
+]
+
+[tool.ruff.lint.pylint]
+max-args = 8
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**.py" = [
+    "D", "ANN", "ARG", "S101", "S103", "S108",
+    "PLR0913", "PLR2004", "SLF", "FBT001", "FBT002",
+]
+"__init__.py" = ["I001", "F401"]
