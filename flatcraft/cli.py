@@ -19,23 +19,13 @@ from __future__ import annotations
 
 import sys
 
-from craft_application import Application
-from craft_application.errors import CraftError
-
 from flatcraft.application import APP_METADATA, Flatcraft
 
 
 def main() -> int:
     """Run the flatcraft CLI."""
-    try:
-        app = Flatcraft(app=APP_METADATA, services=None)
-        return app.run()
-    except CraftError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
-    except KeyboardInterrupt:
-        print("\nInterrupted.", file=sys.stderr)
-        return 130
+    app = Flatcraft(app=APP_METADATA, services=None)
+    return app.run()
 
 
 if __name__ == "__main__":
