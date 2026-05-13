@@ -41,14 +41,7 @@ def generate_manifest(project: Project) -> dict[str, Any]:
         "modules": [_module_to_dict(m) for m in project.modules],
     }
 
-    # Add SDK extensions if present
-    sdk_extensions: list[str] = []
-    # Check if modules have any extension requirements
-    for module in project.modules:
-        # This could be extended if modules have extension metadata
-        pass
-    if sdk_extensions:
-        manifest["sdk-extensions"] = sdk_extensions
+    # TODO: Add SDK extensions support when module metadata includes extension info
 
     if project.finish_args:
         finish_args: list[str] = []
@@ -157,6 +150,9 @@ def build_bundle(
     ]
     try:
         subprocess.run(cmd, check=True, capture_output=True, text=True)  # noqa: S603
+    except FileNotFoundError as e:
+        msg = "flatpak not found. Install it with: sudo apt install flatpak"
+        raise FlatpakBuilderError(msg) from e
     except subprocess.CalledProcessError as e:
         msg = f"Failed to create bundle:\n{e.stderr}"
         raise FlatpakBuilderError(msg) from e

@@ -440,6 +440,21 @@ class TestBuildBundle:
             lifecycle.build_bundle(repo_dir, "com.example.App", output_path)
         assert "Bundle creation failed" in str(exc_info.value)
 
+    @patch("flatcraft.services.lifecycle.subprocess.run")
+    def test_build_bundle_not_found(
+        self, mock_run: MagicMock, tmp_path: Path
+    ) -> None:
+        """Test flatpak not found error."""
+        repo_dir = tmp_path / "repo"
+        repo_dir.mkdir()
+        output_path = tmp_path / "output"
+        output_path.mkdir()
+
+        mock_run.side_effect = FileNotFoundError()
+        with pytest.raises(FlatpakBuilderError) as exc_info:
+            lifecycle.build_bundle(repo_dir, "com.example.App", output_path)
+        assert "flatpak not found" in str(exc_info.value)
+
 
 class TestPack:
     """Tests for pack function."""
