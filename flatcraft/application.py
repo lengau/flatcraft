@@ -17,19 +17,25 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import craft_application
 from typing_extensions import override
 
 from flatcraft import models
+
+if TYPE_CHECKING:
+    from craft_parts.plugins.plugins import PluginType
 
 
 class Flatcraft(craft_application.Application):
     """Flatcraft application class."""
 
     @override
-    def _get_app_plugins(self) -> dict[str, craft_application.PluginType]:
+    def _get_app_plugins(self) -> dict[str, PluginType]:
         """Return application-specific plugins."""
         return {}
+
 
 APP_METADATA = craft_application.AppMetadata(
     name="flatcraft",

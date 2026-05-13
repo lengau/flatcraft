@@ -19,12 +19,14 @@ from __future__ import annotations
 
 import sys
 
+from craft_application import ServiceFactory
+
 from flatcraft.application import APP_METADATA, Flatcraft
 
 
 def main() -> int:
     """Run the flatcraft CLI."""
-    app = Flatcraft(app=APP_METADATA, services=None)
+    app = Flatcraft(app=APP_METADATA, services=ServiceFactory(app=APP_METADATA))
     return app.run()
 
 

@@ -21,11 +21,14 @@ import json
 import logging
 import shutil
 import subprocess
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from flatcraft.errors import FlatpakBuilderError, ManifestError
-from flatcraft.models.project import Module, Project, Source
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from flatcraft.models.project import Module, Project, Source
 
 logger = logging.getLogger(__name__)
 
@@ -41,18 +44,19 @@ def generate_manifest(project: Project) -> dict[str, Any]:
         "modules": [_module_to_dict(m) for m in project.modules],
     }
 
-    # TODO: Add SDK extensions support when module metadata includes extension info
-
     if project.finish_args:
-        finish_args: list[str] = []
-        for share in project.finish_args.share:
-            finish_args.append(f"--share={share}")
-        for socket in project.finish_args.socket:
-            finish_args.append(f"--socket={socket}")
-        for fs in project.finish_args.filesystem:
-            finish_args.append(f"--filesystem={fs}")
-        for device in project.finish_args.device:
-            finish_args.append(f"--device={device}")
+        finish_args: list[str] = [
+            f"--share={share}" for share in project.finish_args.share
+        ]
+        finish_args.extend(
+            f"--socket={socket}" for socket in project.finish_args.socket
+        )
+        finish_args.extend(
+            f"--filesystem={fs}" for fs in project.finish_args.filesystem
+        )
+        finish_args.extend(
+            f"--device={device}" for device in project.finish_args.device
+        )
         manifest["finish-args"] = finish_args
 
     return manifest
@@ -123,7 +127,7 @@ def run_flatpak_builder(
         cmd.extend(["--repo", str(repo_dir)])
 
     try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True)  # noqa: S603
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
     except FileNotFoundError as e:
         msg = "flatpak-builder not found. Install it with: sudo apt install flatpak-builder"
         raise FlatpakBuilderError(msg) from e
@@ -149,7 +153,7 @@ def build_bundle(
         branch,
     ]
     try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True)  # noqa: S603
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
     except FileNotFoundError as e:
         msg = "flatpak not found. Install it with: sudo apt install flatpak"
         raise FlatpakBuilderError(msg) from e
@@ -167,6 +171,7 @@ def validate_environment() -> dict[str, bool]:
 
     Raises:
         FlatpakBuilderError: If critical tools are missing.
+
     """
     tools = {"flatpak-builder": False, "flatpak": False}
 
@@ -214,6 +219,7 @@ def pack(
     Raises:
         FlatpakBuilderError: If the build process fails.
         ManifestError: If manifest generation fails.
+
     """
     logger.info(f"Starting Flatpak build for {project.app_id}")
 
@@ -221,8 +227,8 @@ def pack(
     try:
         logger.debug("Validating environment")
         validate_environment()
-    except FlatpakBuilderError as e:
-        logger.error(f"Environment validation failed: {e}")
+    except FlatpakBuilderError:
+        logger.exception("Environment validation failed")
         raise
 
     # Create output directory if it doesn't exist
@@ -245,8 +251,8 @@ def pack(
         logger.debug("Generating manifest")
         manifest_path = write_manifest(project, output_path)
         logger.info(f"Manifest written to {manifest_path}")
-    except ManifestError as e:
-        logger.error(f"Manifest generation failed: {e}")
+    except ManifestError:
+        logger.exception("Manifest generation failed")
         raise
 
     # Run flatpak-builder
@@ -254,8 +260,8 @@ def pack(
         logger.debug(f"Running flatpak-builder with manifest {manifest_path}")
         run_flatpak_builder(manifest_path, build_dir, repo_dir)
         logger.info("flatpak-builder completed successfully")
-    except FlatpakBuilderError as e:
-        logger.error(f"flatpak-builder failed: {e}")
+    except FlatpakBuilderError:
+        logger.exception("flatpak-builder failed")
         raise
 
     # Build bundle
@@ -263,8 +269,8 @@ def pack(
         logger.debug("Building .flatpak bundle")
         bundle_path = build_bundle(repo_dir, project.app_id, output_path)
         logger.info(f"Bundle created successfully: {bundle_path}")
-    except FlatpakBuilderError as e:
-        logger.error(f"Bundle creation failed: {e}")
+    except FlatpakBuilderError:
+        logger.exception("Bundle creation failed")
         raise
 
     return bundle_path

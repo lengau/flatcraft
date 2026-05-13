@@ -18,11 +18,11 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+import subprocess
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from flatcraft.errors import FlatpakBuilderError, ManifestError
 from flatcraft.models.project import (
     BuildSystem,
@@ -33,6 +33,9 @@ from flatcraft.models.project import (
     SourceType,
 )
 from flatcraft.services import lifecycle
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestSourceToDict:
@@ -121,7 +124,9 @@ class TestGenerateManifest:
 
     def test_basic_manifest(self) -> None:
         """Test generating a basic manifest."""
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
@@ -141,7 +146,9 @@ class TestGenerateManifest:
     def test_manifest_with_modules(self) -> None:
         """Test manifest generation with modules."""
         module = Module(name="myapp", buildsystem=BuildSystem.MESON)
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
@@ -156,7 +163,9 @@ class TestGenerateManifest:
 
     def test_manifest_with_finish_args(self) -> None:
         """Test manifest generation with finish args."""
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
@@ -178,7 +187,9 @@ class TestGenerateManifest:
 
     def test_manifest_with_all_finish_args(self) -> None:
         """Test manifest with all types of finish args."""
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
@@ -209,7 +220,9 @@ class TestWriteManifest:
 
     def test_write_manifest(self, tmp_path: Path) -> None:
         """Test writing manifest to file."""
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
@@ -223,13 +236,15 @@ class TestWriteManifest:
         assert manifest_path.name == "com.example.TestApp.json"
 
         # Verify manifest content
-        with open(manifest_path) as f:
+        with manifest_path.open() as f:
             manifest = json.load(f)
         assert manifest["app-id"] == "com.example.TestApp"
 
     def test_write_manifest_creates_directory(self, tmp_path: Path) -> None:
         """Test write_manifest creates output directory if needed."""
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
@@ -249,7 +264,9 @@ class TestWriteManifest:
 
     def test_write_manifest_error_handling(self, tmp_path: Path) -> None:
         """Test write_manifest error handling."""
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
@@ -294,9 +311,7 @@ class TestValidateEnvironment:
         assert "flatpak-builder not found" in str(exc_info.value)
 
     @patch("flatcraft.services.lifecycle.shutil.which")
-    def test_validate_environment_missing_flatpak(
-        self, mock_which: MagicMock
-    ) -> None:
+    def test_validate_environment_missing_flatpak(self, mock_which: MagicMock) -> None:
         """Test environment validation when flatpak is missing."""
 
         def which_side_effect(tool: str) -> str | None:
@@ -310,9 +325,7 @@ class TestValidateEnvironment:
         assert "flatpak not found" in str(exc_info.value)
 
     @patch("flatcraft.services.lifecycle.shutil.which")
-    def test_validate_environment_both_missing(
-        self, mock_which: MagicMock
-    ) -> None:
+    def test_validate_environment_both_missing(self, mock_which: MagicMock) -> None:
         """Test environment validation when both tools are missing."""
         mock_which.return_value = None
         with pytest.raises(FlatpakBuilderError):
@@ -359,8 +372,6 @@ class TestRunFlatpakBuilder:
         self, mock_run: MagicMock, tmp_path: Path
     ) -> None:
         """Test flatpak-builder error handling."""
-        import subprocess
-
         manifest_path = tmp_path / "manifest.json"
         manifest_path.write_text("{}")
         build_dir = tmp_path / "build"
@@ -391,9 +402,7 @@ class TestBuildBundle:
     """Tests for build_bundle function."""
 
     @patch("flatcraft.services.lifecycle.subprocess.run")
-    def test_build_bundle_success(
-        self, mock_run: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_build_bundle_success(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Test successful bundle building."""
         repo_dir = tmp_path / "repo"
         repo_dir.mkdir()
@@ -426,8 +435,6 @@ class TestBuildBundle:
     @patch("flatcraft.services.lifecycle.subprocess.run")
     def test_build_bundle_error(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Test bundle building error handling."""
-        import subprocess
-
         repo_dir = tmp_path / "repo"
         repo_dir.mkdir()
         output_path = tmp_path / "output"
@@ -441,9 +448,7 @@ class TestBuildBundle:
         assert "Bundle creation failed" in str(exc_info.value)
 
     @patch("flatcraft.services.lifecycle.subprocess.run")
-    def test_build_bundle_not_found(
-        self, mock_run: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_build_bundle_not_found(self, mock_run: MagicMock, tmp_path: Path) -> None:
         """Test flatpak not found error."""
         repo_dir = tmp_path / "repo"
         repo_dir.mkdir()
@@ -473,7 +478,9 @@ class TestPack:
         mock_validate.return_value = {"flatpak": True, "flatpak-builder": True}
         mock_build_bundle.return_value = tmp_path / "output" / "app.flatpak"
 
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
@@ -498,7 +505,9 @@ class TestPack:
         """Test pack with environment validation error."""
         mock_validate.side_effect = FlatpakBuilderError("Tool not found")
 
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
@@ -521,7 +530,9 @@ class TestPack:
         mock_validate.return_value = {"flatpak": True, "flatpak-builder": True}
         mock_run_builder.side_effect = FlatpakBuilderError("Build failed")
 
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
@@ -549,7 +560,9 @@ class TestPack:
         mock_validate.return_value = {"flatpak": True, "flatpak-builder": True}
         mock_build_bundle.return_value = tmp_path / "output" / "app.flatpak"
 
-        project = Project(platforms={}, parts={}, 
+        project = Project(
+            platforms={},
+            parts={},
             name="test-app",
             app_id="com.example.TestApp",
             runtime="org.freedesktop.Platform",
