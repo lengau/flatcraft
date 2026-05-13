@@ -1,5 +1,8 @@
 # Flatcraft
 
+[![CI Status](https://github.com/lengau/flatcraft/actions/workflows/ci.yml/badge.svg)](https://github.com/lengau/flatcraft/actions)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](LICENSE)
+
 A craft tool for creating [Flatpak](https://flatpak.org/) packages, following the
 patterns established by [snapcraft](https://github.com/canonical/snapcraft),
 [rockcraft](https://github.com/canonical/rockcraft), and other \*craft tools.
@@ -23,6 +26,33 @@ flatcraft pack
 # Clean build artifacts
 flatcraft clean
 ```
+
+## How it works
+
+Flatcraft simplifies the Flatpak development workflow by:
+
+1. **Reading `flatcraft.yaml`** - You define your application's metadata, modules, and build configuration in a simple YAML format
+2. **Generating Flatpak manifest** - Flatcraft transforms your `flatcraft.yaml` into a complete Flatpak manifest that flatpak-builder understands
+3. **Building with flatpak-builder** - The generated manifest is passed to `flatpak-builder`, which orchestrates the full build process and creates the Flatpak bundle
+4. **Packaging** - The resulting Flatpak is ready for distribution
+
+```
+flatcraft.yaml → Flatcraft → Flatpak manifest → flatpak-builder → .flatpak
+```
+
+## Supported build systems
+
+Flatcraft supports the following build systems through the `buildsystem` field in module definitions:
+
+| Build System | Support | Notes |
+|-------------|---------|-------|
+| meson | ✓ | Full support for Meson-based projects |
+| autotools | ✓ | Standard autotools (./configure, make, make install) |
+| cmake | ✓ | CMake-based projects |
+| simple | ✓ | Manual build commands via `build-commands` |
+| make | ✓ | Direct makefile-based builds |
+
+For more details on module configuration, see the [Example flatcraft.yaml](#example-flatcraftyaml) section.
 
 ## Example flatcraft.yaml
 
