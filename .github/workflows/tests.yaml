@@ -7,7 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  run-tests:
+    name: Test on Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,5 +21,20 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
       - name: Install dependencies
         run: uv sync --group=dev
-      - name: Run tests
-        run: uv run pytest --tb=short
+      - name: Run tests with coverage
+        run: uv run pytest --cov=flatcraft --cov-report=xml --cov-report=term --tb=short
+      - name: Upload coverage artifact
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: warn
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+          flags: unittests
+          name: codecov-umbrella

@@ -20,9 +20,12 @@ readme = { file = "README.md", content-type = "text/markdown" }
 flatcraft = "flatcraft.cli:main"
 
 [dependency-groups]
-lint = []
+lint = [
+    "ruff>=0.11.0",
+]
 types = [
     "mypy[reports]~=1.20.0",
+    "pyright>=1.1.0",
     "types-Pygments",
     "types-colorama",
     "types-setuptools",
