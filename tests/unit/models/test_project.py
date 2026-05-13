@@ -9,6 +9,7 @@ import pytest
 from pydantic import ValidationError
 
 from flatcraft.models.project import (
+    BuildOptions,
     BuildSystem,
     Module,
     Project,
@@ -85,10 +86,15 @@ class TestModule:
                 "build-options": {
                     "env": {"CFLAGS": "-O2"},
                     "cflags": "-O3",
+                    "build-args": ["-j4"],
                 }
             },
         )
-        assert module.build_options == {"env": {"CFLAGS": "-O2"}, "cflags": "-O3"}
+        assert module.build_options == BuildOptions(
+            env={"CFLAGS": "-O2"},
+            cflags="-O3",
+            build_args=["-j4"],
+        )
 
     def test_module_with_rename_field(self):
         module = Module(
@@ -142,6 +148,7 @@ class TestProject:
             "com.example.MyApp",
             "io.github.user.app",
             "org.gnome.Calendar",
+            "org.example_app.MyApp",
         ]
         for app_id in valid_app_ids:
             project = Project(

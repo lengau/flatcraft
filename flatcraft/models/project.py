@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import enum
 import re
-from typing import Annotated, Any
+from typing import Annotated
 
 import pydantic
 from craft_application.models import CraftBaseModel, Project as CraftProject
@@ -62,6 +62,22 @@ class Source(CraftBaseModel):
     sha256: str | None = None
 
 
+class BuildOptions(CraftBaseModel):
+    """Build-time options for a Flatpak module."""
+
+    model_config = pydantic.ConfigDict(populate_by_name=True)
+
+    cflags: str | None = None
+    cxxflags: str | None = None
+    ldflags: str | None = None
+    prefix: str | None = None
+    env: dict[str, str] = pydantic.Field(default_factory=dict)
+    build_args: list[str] = pydantic.Field(default_factory=list, alias="build-args")
+    config_opts: list[str] = pydantic.Field(default_factory=list, alias="config-opts")
+    append_path: str | None = pydantic.Field(default=None, alias="append-path")
+    prepend_path: str | None = pydantic.Field(default=None, alias="prepend-path")
+
+
 class Module(CraftBaseModel):
     """A module to build within the Flatpak.
 
@@ -77,8 +93,8 @@ class Module(CraftBaseModel):
     build_commands: list[str] = pydantic.Field(
         default_factory=list, alias="build-commands"
     )
-    build_options: dict[str, Any] = pydantic.Field(
-        default_factory=dict, alias="build-options"
+    build_options: BuildOptions | None = pydantic.Field(
+        default=None, alias="build-options"
     )
     cleanup: list[str] = pydantic.Field(default_factory=list)
     rename: dict[str, str] = pydantic.Field(default_factory=dict)
@@ -141,18 +157,18 @@ class Project(CraftProject):
                 f"app_id must have at least 3 segments in reverse-DNS format, got: {v}"
             )
 
-        # Each segment must be a valid identifier (alphanumeric and hyphens)
-        # First letter must be alphabetic
+        # Per the D-Bus specification, each segment may contain underscores.
+        # First letter must be alphabetic.
         for segment in segments:
             if not segment:
                 raise ValueError(
                     f"app_id segments cannot be empty, got: {v}"
                 )
-            if not re.match(r"^[a-zA-Z][a-zA-Z0-9\-]*$", segment):
+            if not re.match(r"^[a-zA-Z][a-zA-Z0-9_\-]*$", segment):
                 raise ValueError(
                     f"app_id segment '{segment}' is not a valid identifier. "
                     f"Each segment must start with a letter and contain only "
-                    f"alphanumeric characters or hyphens, got: {v}"
+                    f"alphanumeric characters, underscores, or hyphens, got: {v}"
                 )
 
         return v
