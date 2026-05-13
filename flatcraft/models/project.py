@@ -22,7 +22,10 @@ import re
 from typing import Annotated
 
 import pydantic
-from craft_application.models import CraftBaseModel, Project as CraftProject
+from craft_application.models import CraftBaseModel
+from craft_application.models import Project as CraftProject
+
+MIN_APP_ID_SEGMENTS = 3
 
 
 class BuildSystem(str, enum.Enum):
@@ -132,9 +135,7 @@ class Project(CraftProject):
     sdk: str
     command: str
     modules: list[Module]
-    finish_args: FinishArgs | None = pydantic.Field(
-        default=None, alias="finish-args"
-    )
+    finish_args: FinishArgs | None = pydantic.Field(default=None, alias="finish-args")
 
     @pydantic.field_validator("app_id")
     @classmethod
@@ -149,10 +150,11 @@ class Project(CraftProject):
 
         Raises:
             ValueError: If app_id is not in valid reverse-DNS format.
+
         """
         # Split by dots
         segments = v.split(".")
-        if len(segments) < 3:
+        if len(segments) < MIN_APP_ID_SEGMENTS:
             raise ValueError(
                 f"app_id must have at least 3 segments in reverse-DNS format, got: {v}"
             )
@@ -161,9 +163,7 @@ class Project(CraftProject):
         # First letter must be alphabetic.
         for segment in segments:
             if not segment:
-                raise ValueError(
-                    f"app_id segments cannot be empty, got: {v}"
-                )
+                raise ValueError(f"app_id segments cannot be empty, got: {v}")
             if not re.match(r"^[a-zA-Z][a-zA-Z0-9_\-]*$", segment):
                 raise ValueError(
                     f"app_id segment '{segment}' is not a valid identifier. "
@@ -189,6 +189,7 @@ class Project(CraftProject):
 
         Raises:
             ValueError: If runtime_version is not a valid version string.
+
         """
         # Version validation: 1 or 2 numeric segments separated by dots
         # Valid formats: "1", "1.0", "45", "45.0", "3.38"

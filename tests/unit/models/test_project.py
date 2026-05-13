@@ -6,8 +6,6 @@
 """Tests for the flatcraft project model."""
 
 import pytest
-from pydantic import ValidationError
-
 from flatcraft.models.project import (
     BuildOptions,
     BuildSystem,
@@ -16,6 +14,7 @@ from flatcraft.models.project import (
     Source,
     SourceType,
 )
+from pydantic import ValidationError
 
 
 class TestSource:
@@ -279,4 +278,3 @@ class TestProject:
             },
         )
         assert project.runtime_version == "23.08"
-

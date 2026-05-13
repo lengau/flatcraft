@@ -17,9 +17,10 @@ class TestCLI:
 
     def test_main_creates_flatcraft_app(self) -> None:
         """Test that main creates a Flatcraft application instance."""
-        with mock.patch("flatcraft.cli.Flatcraft") as mock_flatcraft, mock.patch(
-            "flatcraft.cli.APP_METADATA"
-        ) as mock_metadata:
+        with (
+            mock.patch("flatcraft.cli.Flatcraft") as mock_flatcraft,
+            mock.patch("flatcraft.cli.APP_METADATA") as mock_metadata,
+        ):
             mock_instance = mock.MagicMock()
             mock_instance.run.return_value = 0
             mock_flatcraft.return_value = mock_instance
