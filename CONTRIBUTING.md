@@ -91,7 +91,7 @@ The build pipeline works as follows:
 To add support for a new build system (e.g., `cargo` for Rust projects):
 
 1. **Update the project model** (`flatcraft/models/project.py`):
-   - Add the new build system to the `ModuleBuildsystem` enum or string validation
+   - Add the new build system to the `BuildSystem` enum or string validation
 
 2. **Implement build logic** (in `flatcraft/services/lifecycle.py` or a new builder module):
    - Add a handler/builder class that generates the appropriate build commands

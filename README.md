@@ -46,11 +46,12 @@ Flatcraft supports the following build systems through the `buildsystem` field i
 
 | Build System | Support | Notes |
 |-------------|---------|-------|
-| meson | ✓ | Full support for Meson-based projects |
-| autotools | ✓ | Standard autotools (./configure, make, make install) |
+| autotools | ✓ | Standard autotools (`./configure`, `make`, `make install`) |
 | cmake | ✓ | CMake-based projects |
+| cmake-ninja | ✓ | CMake projects configured to generate Ninja build files |
+| meson | ✓ | Full support for Meson-based projects |
+| qmake | ✓ | Qt projects using qmake |
 | simple | ✓ | Manual build commands via `build-commands` |
-| make | ✓ | Direct makefile-based builds |
 
 For more details on module configuration, see the [Example flatcraft.yaml](#example-flatcraftyaml) section.
 
