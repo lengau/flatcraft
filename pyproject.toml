@@ -23,6 +23,7 @@ flatcraft = "flatcraft.cli:main"
 lint = []
 types = [
     "mypy[reports]~=1.20.0",
+    "pyright>=1.1.0",
     "types-Pygments",
     "types-colorama",
     "types-setuptools",
