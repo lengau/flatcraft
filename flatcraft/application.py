@@ -31,7 +31,6 @@ class Flatcraft(craft_application.Application):
         """Return application-specific plugins."""
         return {}
 
-
 APP_METADATA = craft_application.AppMetadata(
     name="flatcraft",
     summary="A craft tool for creating Flatpak packages",
